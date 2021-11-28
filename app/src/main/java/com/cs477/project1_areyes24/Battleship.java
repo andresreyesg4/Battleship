@@ -52,6 +52,7 @@ public class Battleship extends AppCompatActivity {
     public void build_ship_layout(){
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
+        int h = (size.y/2) / (HEIGHT + 2);
         GridLayout grid_ship_layout = findViewById(R.id.top_grid);
         grid_ship_layout.setColumnCount(WIDTH);
         // get the width of the phone and then divide.
@@ -63,7 +64,7 @@ public class Battleship extends AppCompatActivity {
                 ship_layout[i][j] = new TextView(this);
                 ship_layout[i][j].setBackgroundColor(Color.rgb(60, 185, 225));
                 ship_layout[i][j].setWidth(100);
-                ship_layout[i][j].setHeight(92);
+                ship_layout[i][j].setHeight(h);
                 if(temp != 0){
                     ship_layout[i][j].setText(Integer.toString(temp));
                     ship_layout[i][j].setBackgroundColor(Color.GRAY);
@@ -79,6 +80,7 @@ public class Battleship extends AppCompatActivity {
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
         GridLayout grid_attack_layout = findViewById(R.id.attack_grid);
+        int h = (size.y/2) / (HEIGHT + 2);
         grid_attack_layout.setRowCount(HEIGHT);
         grid_attack_layout.setColumnCount(WIDTH);
         buttons = new Button[WIDTH][HEIGHT];
@@ -90,7 +92,7 @@ public class Battleship extends AppCompatActivity {
                 buttons[i][j].setBackgroundColor(Color.rgb(60,185,225));
                 buttons[i][j].setText("x");
                 buttons[i][j].setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                grid_attack_layout.addView(buttons[i][j], 100, 92);
+                grid_attack_layout.addView(buttons[i][j], 100, h);
             }
         }
     }
