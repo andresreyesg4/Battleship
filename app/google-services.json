@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "85788355444",
+    "project_id": "battleship-8fb0f",
+    "storage_bucket": "battleship-8fb0f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85788355444:android:3babb3360c3f443fcd5a21",
+        "android_client_info": {
+          "package_name": "com.cs477.project1_areyes24"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "85788355444-sh17jirknmkbphig6di6jhd192s59ufb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADU8j7eeP6EKrPE6N_KbcKh3RmTTehFTA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "85788355444-sh17jirknmkbphig6di6jhd192s59ufb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
