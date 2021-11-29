@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/battleship_cover"
+    tools:context=".Authenticate">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="35sp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="Please Sign in!"
+        android:id="@+id/top_text"
+        android:textStyle="bold"
+        android:textColor="@color/black"/>
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/top_text"
+        android:id="@+id/user_name"
+        android:hint="Enter your name"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/black"/>
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sign in"
+        android:layout_below="@id/user_name"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/sing_in"/>
+
+
+</RelativeLayout>

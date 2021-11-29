@@ -11,10 +11,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="360dp"
+        android:layout_marginTop="370dp"
         android:text="Battle against the Computer!"
         android:id="@+id/battle"
         android:onClick="startGame"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/battle"
+        android:id="@+id/multiplayer"
+        android:text="Battle Against a Friend"/>
 
 
 </RelativeLayout>
