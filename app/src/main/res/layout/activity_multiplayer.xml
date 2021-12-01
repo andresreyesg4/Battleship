@@ -8,12 +8,21 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/user_list"/>
+            android:id="@+id/user_list"
+            android:layout_weight="1"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/matchroom"
+            android:layout_weight="0"
+            android:text="Create Match"/>
+
 
     </LinearLayout>
 

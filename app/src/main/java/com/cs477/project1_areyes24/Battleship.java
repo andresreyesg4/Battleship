@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.reflect.WildcardType;
 import java.util.Random;
+
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -161,6 +163,20 @@ public class Battleship extends AppCompatActivity {
     // create a button handler class to handle each button on the grid.
     private class ButtonHandler implements View.OnClickListener {
         public void onClick(View v) {
+            Bundle bundle = getIntent().getExtras();
+            boolean is_multiplayer = bundle.getBoolean("multiplayer");
+            if(is_multiplayer){
+                multiplayer(v);
+            }else {
+                single_player(v);
+            }
+        }
+
+        private void multiplayer(View v) {
+            // implement the game playing with multiplayer.
+        }
+
+        public void single_player(View v){
             Random random = new Random();
             TextView message = findViewById(R.id.message);
             int r = 0, c = 0;

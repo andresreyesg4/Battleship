@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         // create an intent for the activity
         Intent intent = new Intent(this, Battleship.class);
         // start the activity
+        intent.putExtra("multiplayer", false);
         startActivity(intent);
     }
 }
