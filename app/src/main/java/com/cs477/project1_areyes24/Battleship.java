@@ -1,11 +1,13 @@
 package com.cs477.project1_areyes24;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.reflect.WildcardType;
 import java.util.Random;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -14,6 +16,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class Battleship extends AppCompatActivity {
     private final int WIDTH = 8;
@@ -26,28 +34,64 @@ public class Battleship extends AppCompatActivity {
     private Board player_board;
     private Board pc_board;
     private int player_life = 16, pc_life = 16;
+    private FirebaseDatabase database;
+    private DatabaseReference turnTraker;
+    private DatabaseReference lifeTracker;
+    private DatabaseReference gameover;
+    private DatabaseReference coordinate_moves;
+//    private DatabaseReference other_player_moves;
+//    private DatabaseReference my_moves;
+//    private DatabaseReference other_player_hitmiss;
+    private DatabaseReference my_hitmiss;
+    private String playerName, roomName, role, next_move;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_battleship);
-        // initialize the ships
-        player_ships = new Ship[5];
-        ship_init(player_ships);
-        pc_ships = new Ship[5];
-        ship_init(pc_ships);
+        // initiate the database only if necessary
+        Bundle extras = getIntent().getExtras();
+        if(extras.getBoolean("multiplayer")){
+            // when multiplayer we are only creating one board.
+            role = ""; next_move = "";
+            database = FirebaseDatabase.getInstance();
+            SharedPreferences preferences = getSharedPreferences("PREFS", 0);
+            playerName = preferences.getString("playerName", "");
+            roomName = extras.getString("roomName");
+            if(roomName.equals(playerName)){
+                role = "host";
+            }else {
+                role = "guest";
+            }
+            player_ships = new Ship[5];
+            ship_init(player_ships);
+            player_board = new Board();
+            setBoard(player_board, player_ships);
+            build_ship_layout();
+            build_attack_layout();
+            coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
+            addCoordinateListener();
+            // next_move = role + ":None";
+            // coordinate_moves.setValue(next_move);
+        }else {
+            // initialize the ships
+            player_ships = new Ship[5];
+            ship_init(player_ships);
+            pc_ships = new Ship[5];
+            ship_init(pc_ships);
 
-        // initiate both boards
-        player_board = new Board();
-        pc_board = new Board();
+            // initiate both boards
+            player_board = new Board();
+            pc_board = new Board();
 
-        // place the ships in each board
-        setBoard(player_board,player_ships); // the only board that will be visible.
-        setBoard(pc_board, pc_ships);
+            // place the ships in each board
+            setBoard(player_board, player_ships); // the only board that will be visible.
+            setBoard(pc_board, pc_ships);
 
-        // call the layout functions to build the layout.
-        build_ship_layout();
-        build_attack_layout();
+            // call the layout functions to build the layout.
+            build_ship_layout();
+            build_attack_layout();
+        }
     }
 
     // Function that programmatically builds the gridlayout of the players ships
@@ -157,6 +201,56 @@ public class Battleship extends AppCompatActivity {
         }
     }
 
+    // listener for next move
+    private void addCoordinateListener() {
+        coordinate_moves.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // next move received
+                if(role.equals("host")){
+                    // player one
+                    String move = snapshot.getValue(String.class).toString();
+                    if(move.contains("guest:")){
+                        String[] coor = move.substring(6).split(",");
+                        int row = Integer.parseInt(coor[0]);
+                        int column = Integer.parseInt(coor[1]);
+                        if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
+                            buttons[row][column].setBackgroundColor(Color.RED);
+                            buttons[row][column].setEnabled(false);
+                            player_life--;
+                            if(player_life == 0){
+                                // player died
+                            }
+                        }
+                    }
+
+                }else{
+                    // player two
+                    String move = snapshot.getValue(String.class).toString();
+                    if(move.contains("host:")){
+                        String[] coor = move.substring(5).split(",");
+                        int row = Integer.parseInt(coor[0]);
+                        int column = Integer.parseInt(coor[1]);
+                        if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
+                            buttons[row][column].setBackgroundColor(Color.RED);
+                            buttons[row][column].setEnabled(false);
+                            player_life--;
+                            if(player_life == 0){
+                                // player died
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
     /*
     * add when a ship has sunken on the pc board
     * give pc some mind.*/
@@ -174,12 +268,71 @@ public class Battleship extends AppCompatActivity {
 
         private void multiplayer(View v) {
             // implement the game playing with multiplayer.
+            TextView message = findViewById(R.id.message);
+            boolean game_won = false;
+//            initialize
+//            coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
+//            next_move = role + ":None";
+//            coordinate_moves.setValue(next_move);
+//            addCoordinateListener();
+            if(role.equals("host")){
+                // send playerOnes moves
+                for(int row = 0; row < 8; row++){
+                    for(int column = 0; column < 8; column++){
+                        if(v == buttons[row][column]){
+                            next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                        }
+                    }
+                }
+            }else{
+                // send playerTwo moves
+                for(int row = 0; row < 8; row++){
+                    for(int column = 0; column < 8; column++){
+                        if(v == buttons[row][column]){
+                            next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                        }
+                    }
+                }
+            }
+
         }
+
+//        // listener for next move
+//        private void addCoordinateListener() {
+//            coordinate_moves.addValueEventListener(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                    // next move received
+//                    if(role.equals("host")){
+//                        // player one
+//
+//                    }else{
+//                        // player two
+//                        String move = snapshot.getValue(String.class).toString();
+//                        if(move.contains("host:")){
+//                            String[] coor = move.substring(5).split(",");
+//                            int row = Integer.parseInt(coor[0]);
+//                            int column = Integer.parseInt(coor[1]);
+//                            if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
+//                                buttons[row][column].setBackgroundColor(Color.RED);
+//                                buttons[row][column].setEnabled(false);
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError error) {
+//
+//                }
+//            });
+//        }
 
         public void single_player(View v){
             Random random = new Random();
             TextView message = findViewById(R.id.message);
-            int r = 0, c = 0;
+            int r, c;
             boolean game_won = false;
             for (int row = 0; row < 8; row++) {
                 for (int column = 0; column < 8; column++) {
