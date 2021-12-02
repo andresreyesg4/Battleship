@@ -207,7 +207,7 @@ public class Battleship extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // next move received
-                if(role.equals("host")){
+                if(role.equals("host") && snapshot.getValue(String.class).toString() != null){
                     // player one
                     String move = snapshot.getValue(String.class).toString();
                     if(move.contains("guest:")){
@@ -226,17 +226,19 @@ public class Battleship extends AppCompatActivity {
 
                 }else{
                     // player two
-                    String move = snapshot.getValue(String.class).toString();
-                    if(move.contains("host:")){
-                        String[] coor = move.substring(5).split(",");
-                        int row = Integer.parseInt(coor[0]);
-                        int column = Integer.parseInt(coor[1]);
-                        if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
-                            buttons[row][column].setBackgroundColor(Color.RED);
-                            buttons[row][column].setEnabled(false);
-                            player_life--;
-                            if(player_life == 0){
-                                // player died
+                    if(snapshot.getValue(String.class).toString() != null){
+                        String move = snapshot.getValue(String.class).toString();
+                        if (move.contains("host:")) {
+                            String[] coor = move.substring(5).split(",");
+                            int row = Integer.parseInt(coor[0]);
+                            int column = Integer.parseInt(coor[1]);
+                            if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+                                buttons[row][column].setBackgroundColor(Color.RED);
+                                buttons[row][column].setEnabled(false);
+                                player_life--;
+                                if (player_life == 0) {
+                                    // player died
+                                }
                             }
                         }
                     }
