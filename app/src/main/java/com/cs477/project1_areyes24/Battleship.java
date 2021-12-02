@@ -256,6 +256,7 @@ public class Battleship extends AppCompatActivity {
                             String[] coor = move.substring(6).split(",");
                             int row = Integer.parseInt(coor[0]);
                             int column = Integer.parseInt(coor[1]);
+                            System.out.println(row + ", " + column);
                             if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
                                 buttons[row][column].setBackgroundColor(Color.RED);
                                 buttons[row][column].setEnabled(false);
@@ -274,6 +275,7 @@ public class Battleship extends AppCompatActivity {
                                 String[] coor = move.substring(5).split(",");
                                 int row = Integer.parseInt(coor[0]);
                                 int column = Integer.parseInt(coor[1]);
+                                System.out.println(row + ", " + column);
                                 if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
                                     buttons[row][column].setBackgroundColor(Color.RED);
                                     buttons[row][column].setEnabled(false);
