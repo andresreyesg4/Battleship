@@ -227,6 +227,7 @@ public class Battleship extends AppCompatActivity {
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
                             next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                            coordinate_moves.setValue(next_move);
                         }
                     }
                 }
@@ -236,6 +237,7 @@ public class Battleship extends AppCompatActivity {
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
                             next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                            coordinate_moves.setValue(next_move);
                         }
                     }
                 }
