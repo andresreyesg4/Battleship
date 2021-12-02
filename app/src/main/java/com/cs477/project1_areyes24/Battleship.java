@@ -3,15 +3,12 @@ package com.cs477.project1_areyes24;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.lang.reflect.WildcardType;
 import java.util.Random;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -38,7 +35,8 @@ public class Battleship extends AppCompatActivity {
     private DatabaseReference turnTraker;
     private DatabaseReference lifeTracker;
     private DatabaseReference gameover;
-    private DatabaseReference coordinate_moves;
+    private DatabaseReference host_coordinate_moves;
+    private DatabaseReference guest_coordinate_moves;
 //    private DatabaseReference other_player_moves;
 //    private DatabaseReference my_moves;
 //    private DatabaseReference other_player_hitmiss;
@@ -217,29 +215,37 @@ public class Battleship extends AppCompatActivity {
             TextView message = findViewById(R.id.message);
             boolean game_won = false;
 //            initialize
-            coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
-            next_move = "None";
-            coordinate_moves.setValue(next_move);
-            addCoordinateListener();
+//            host_coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
+//            next_move = "None";
+//            host_coordinate_moves.setValue(next_move);
+//            addHostCoordinateListener();
             if(role.equals("host")){
+                guest_coordinate_moves = database.getReference("rooms/" + roomName + "/guest_coordinate_moves");
+                next_move = "None";
+                guest_coordinate_moves.setValue(next_move);
+                addGuestCoordinateListener();
                 // send playerOnes moves
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
-                            next_move = "guest: " + Integer.toString(row) + "," + Integer.toString(column);
-                            coordinate_moves.setValue(next_move);
-                            addCoordinateListener();
+                            next_move = "host: " + Integer.toString(row) + "," + Integer.toString(column);
+                            guest_coordinate_moves.setValue(next_move);
+                            addGuestCoordinateListener();
                         }
                     }
                 }
             }else{
+                host_coordinate_moves = database.getReference("rooms/" + roomName + "/host_coordinate_moves");
+                next_move = "None";
+                host_coordinate_moves.setValue(next_move);
+                addHostCoordinateListener();
                 // send playerTwo moves
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
-                            next_move = "host: " + Integer.toString(row) + "," + Integer.toString(column);
-                            coordinate_moves.setValue(next_move);
-                            addCoordinateListener();
+                            next_move = "guest: " + Integer.toString(row) + "," + Integer.toString(column);
+                            host_coordinate_moves.setValue(next_move);
+                            addHostCoordinateListener();
                         }
                     }
                 }
@@ -247,19 +253,49 @@ public class Battleship extends AppCompatActivity {
 
         }
 
+        private void addGuestCoordinateListener() {
+            guest_coordinate_moves.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String move = (String) snapshot.getValue();
+                    if(snapshot != null && role.equals("guest")){
+                        if (move.contains("host:")) {
+                            String[] coor = move.substring(7).split(",");
+                            int row = Integer.parseInt(coor[0]);
+                            int column = Integer.parseInt(coor[1]);
+                            System.out.println(row + ", " + column);
+                            if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+                                buttons[row][column].setBackgroundColor(Color.RED);
+                                buttons[row][column].setEnabled(false);
+                                player_life--;
+                                if (player_life == 0) {
+                                    // player died
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
+
         // listener for next move
-        private void addCoordinateListener() {
-//            coordinate_moves.getDatabase().getReference("coordinate_moves"  );
-            coordinate_moves.addValueEventListener(new ValueEventListener() {
+        private void addHostCoordinateListener() {
+            host_coordinate_moves.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     // next move received
                     String move = "";
                     move = (String) snapshot.getValue();
-                    if(role.equals("host") && snapshot != null && move.contains("host:")){
+                    if(role.equals("host") && snapshot != null){
                         // player one
-                        if(move.contains("host:")){
-                            String[] coor = move.substring(6).split(",");
+                        if(move.contains("guest:")){
+                            String[] coor = move.substring(7).split(",");
                             int row = Integer.parseInt(coor[0]);
                             int column = Integer.parseInt(coor[1]);
                             System.out.println(row + ", " + column);
@@ -274,24 +310,24 @@ public class Battleship extends AppCompatActivity {
                         }
 
                     }else{
-                        // player two
-                        if(snapshot != null && move.contains("guest:")){
-                            if (move.contains("guest:")) {
-                                String[] coor = move.substring(7).split(",");
-                                int row = Integer.parseInt(coor[0]);
-                                int column = Integer.parseInt(coor[1]);
-                                System.out.println(row + ", " + column);
-                                if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
-                                    buttons[row][column].setBackgroundColor(Color.RED);
-                                    buttons[row][column].setEnabled(false);
-                                    player_life--;
-                                    if (player_life == 0) {
-                                        // player died
-                                    }
-                                }
-                            }
-                        }
-
+//                        // player two
+//                        if(snapshot != null && move.contains("guest:")){
+//                            if (move.contains("guest:")) {
+//                                String[] coor = move.substring(7).split(",");
+//                                int row = Integer.parseInt(coor[0]);
+//                                int column = Integer.parseInt(coor[1]);
+//                                System.out.println(row + ", " + column);
+//                                if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+//                                    buttons[row][column].setBackgroundColor(Color.RED);
+//                                    buttons[row][column].setEnabled(false);
+//                                    player_life--;
+//                                    if (player_life == 0) {
+//                                        // player died
+//                                    }
+//                                }
+//                            }
+//                        }
+//
                     }
                 }
 
