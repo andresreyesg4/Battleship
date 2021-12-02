@@ -226,8 +226,9 @@ public class Battleship extends AppCompatActivity {
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
-                            next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                            next_move = "guest: " + Integer.toString(row) + "," + Integer.toString(column);
                             coordinate_moves.setValue(next_move);
+                            addCoordinateListener();
                         }
                     }
                 }
@@ -236,8 +237,9 @@ public class Battleship extends AppCompatActivity {
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
-                            next_move = role + ": " + Integer.toString(row) + "," + Integer.toString(column);
+                            next_move = "host: " + Integer.toString(row) + "," + Integer.toString(column);
                             coordinate_moves.setValue(next_move);
+                            addCoordinateListener();
                         }
                     }
                 }
@@ -247,18 +249,16 @@ public class Battleship extends AppCompatActivity {
 
         // listener for next move
         private void addCoordinateListener() {
+//            coordinate_moves.getDatabase().getReference("coordinate_moves"  );
             coordinate_moves.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     // next move received
-                    if(role.equals("host") && snapshot != null){
+                    String move = "";
+                    move = (String) snapshot.getValue();
+                    if(role.equals("host") && snapshot != null && move.contains("host:")){
                         // player one
-                        Iterable<DataSnapshot> iterable_move = snapshot.getChildren();
-                        String move = "";
-                        for(DataSnapshot m: iterable_move){
-                            move = m.getKey();
-                        }
-                        if(move.contains("guest:")){
+                        if(move.contains("host:")){
                             String[] coor = move.substring(6).split(",");
                             int row = Integer.parseInt(coor[0]);
                             int column = Integer.parseInt(coor[1]);
@@ -275,14 +275,9 @@ public class Battleship extends AppCompatActivity {
 
                     }else{
                         // player two
-                        if(snapshot != null){
-                            Iterable<DataSnapshot> iterable_move = snapshot.getChildren();
-                            String move = "";
-                            for(DataSnapshot m: iterable_move){
-                                move = m.getKey();
-                            }
-                            if (move.contains("host:")) {
-                                String[] coor = move.substring(5).split(",");
+                        if(snapshot != null && move.contains("guest:")){
+                            if (move.contains("guest:")) {
+                                String[] coor = move.substring(7).split(",");
                                 int row = Integer.parseInt(coor[0]);
                                 int column = Integer.parseInt(coor[1]);
                                 System.out.println(row + ", " + column);
