@@ -71,7 +71,7 @@ public class Battleship extends AppCompatActivity {
             build_attack_layout();
 
             // create the reference to coordinate moves for both players
-            next_move = role + ":None";
+            next_move = ":None";
             coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
             coordinate_moves.setValue(next_move);
             addCoordinateListener();
@@ -107,37 +107,37 @@ public class Battleship extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(role.equals("host")){
                     // check if the recent change that includes "guest:" contains hit or miss
-                    if(snapshot.getValue(String.class).contains("guest:")){
+                    if(snapshot.getValue(String.class).contains("guest: Hit")){
                         String hm = snapshot.getValue(String.class).substring(6, 9);
                         String[] coord = snapshot.getValue(String.class).substring(10).split(",");
                         int row = Integer.parseInt(coord[0]);
                         int col = Integer.parseInt(coord[1]);
-                        if(hm.equalsIgnoreCase("hit")){
-                            // host successfully hit the guest's ship
-                            buttons[row][col].setBackgroundColor(Color.RED);
-                            buttons[row][col].setEnabled(false);
-                        }else{
-                            // missed, just disable the button
-                            buttons[row][col].setEnabled(false);
-                            buttons[row][col].setText("");
-                        }
+                        buttons[row][col].setBackgroundColor(Color.RED);
+                        buttons[row][col].setEnabled(false);
+                    }else{
+                        String hm = snapshot.getValue(String.class).substring(6,9);
+                        String[] coord = snapshot.getValue(String.class).substring(11).split(",");
+                        int row = Integer.parseInt(coord[0]);
+                        int col = Integer.parseInt(coord[1]);
+                        buttons[row][col].setEnabled(false);
+                        buttons[row][col].setText("");
                     }
                 }else{
                     // check if the recent shot hit or missed the host's ships
-                    if(snapshot.getValue(String.class).contains("host:")){
+                    if(snapshot.getValue(String.class).contains("host: Hit")){
+                        String hm = snapshot.getValue(String.class).substring(5, 8);
+                        String[] coord = snapshot.getValue(String.class).substring(9).split(",");
+                        int row = Integer.parseInt(coord[0]);
+                        int col = Integer.parseInt(coord[1]);
+                        buttons[row][col].setBackgroundColor(Color.RED);
+                        buttons[row][col].setEnabled(false);
+                    }else{
                         String hm = snapshot.getValue(String.class).substring(5, 9);
                         String[] coord = snapshot.getValue(String.class).substring(10).split(",");
                         int row = Integer.parseInt(coord[0]);
                         int col = Integer.parseInt(coord[1]);
-                        if(hm.equalsIgnoreCase("miss")){
-                            // host successfully hit the guest's ship
-                            buttons[row][col].setBackgroundColor(Color.RED);
-                            buttons[row][col].setEnabled(false);
-                        }else{
-                            // missed, just disable the button
-                            buttons[row][col].setEnabled(false);
-                            buttons[row][col].setText("");
-                        }
+                        buttons[row][col].setEnabled(false);
+                        buttons[row][col].setText("");
                     }
                 }
             }
