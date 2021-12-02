@@ -91,7 +91,7 @@ public class Multiplayer extends AppCompatActivity {
                 matchmaker.setText("Create Match");
                 matchmaker.setEnabled(true);
                 Intent intent = new Intent(getApplicationContext(), Battleship.class);
-                intent.putExtra("roomname", roomname);
+                intent.putExtra("roomName", roomname);
                 intent.putExtra("multiplayer", true);
                 startActivity(intent);
             }
