@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -36,7 +37,7 @@ public class Battleship extends AppCompatActivity {
     private DatabaseReference turnTraker;
     private DatabaseReference lifeTracker;
     private DatabaseReference gameover;
-    private DatabaseReference host_coordinate_moves;
+    private DatabaseReference coordinate_moves;
     private DatabaseReference guest_coordinate_moves;
 //    private DatabaseReference other_player_moves;
 //    private DatabaseReference my_moves;
@@ -68,6 +69,10 @@ public class Battleship extends AppCompatActivity {
             setBoard(player_board, player_ships);
             build_ship_layout();
             build_attack_layout();
+            next_move = role + ":None";
+            coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
+            coordinate_moves.setValue(next_move);
+            addCoordinateListener();
         }else {
             // initialize the ships
             player_ships = new Ship[5];
@@ -87,6 +92,56 @@ public class Battleship extends AppCompatActivity {
             build_ship_layout();
             build_attack_layout();
         }
+    }
+
+    private void addCoordinateListener() {
+        coordinate_moves.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(role.equals("host")){
+                    if(snapshot.getValue(String.class).contains("guest")){
+                        // coming from the guest
+                        String move = snapshot.getValue(String.class);
+                        String[] coord = move.substring(7).split(",");
+                        int row = Integer.parseInt(coord[0]);
+                        int column = Integer.parseInt(coord[1]);
+                        if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+                            buttons[row][column].setBackgroundColor(Color.RED);
+                            buttons[row][column].setEnabled(false);
+                            player_life--;
+                            if (player_life == 0) {
+                                // player died
+                            }
+                        }
+                    }
+                    Toast.makeText(Battleship.this, "" + snapshot.
+                            getValue(String.class).replace("guest:", ""),
+                            Toast.LENGTH_SHORT).show();
+                }else{
+                    if(snapshot.getValue(String.class).contains("host")){
+                        // coming from the host
+                        String move = snapshot.getValue(String.class);
+                        String[] coord = move.substring(6).split(",");
+                        int row = Integer.parseInt(coord[0]);
+                        int column = Integer.parseInt(coord[1]);
+                        if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+                            buttons[row][column].setBackgroundColor(Color.RED);
+                            buttons[row][column].setEnabled(false);
+                            player_life--;
+                            if (player_life == 0) {
+                                // player died
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                coordinate_moves.setValue(next_move);
+            }
+        });
     }
 
     // Function that programmatically builds the gridlayout of the players ships
@@ -216,37 +271,34 @@ public class Battleship extends AppCompatActivity {
             TextView message = findViewById(R.id.message);
             boolean game_won = false;
 //            initialize
-//            host_coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
-//            next_move = "None";
-//            host_coordinate_moves.setValue(next_move);
-//            addHostCoordinateListener();
             if(role.equals("host")){
-                guest_coordinate_moves = database.getReference("rooms/" + roomName + "/guest_coordinate_moves");
-                next_move = "None";
-                guest_coordinate_moves.setValue(next_move);
-                addGuestCoordinateListener();
+//                guest_coordinate_moves = database.getReference("rooms/" + roomName + "/guest_coordinate_moves");
+//                next_move = "None";
+//                guest_coordinate_moves.setValue(next_move);
+//                addGuestCoordinateListener();
                 // send playerOnes moves
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
                             next_move = "host: " + Integer.toString(row) + "," + Integer.toString(column);
-                            guest_coordinate_moves.setValue(next_move);
-                            addGuestCoordinateListener();
+                            coordinate_moves.setValue(next_move);
+//                            guest_coordinate_moves.setValue(next_move);
+//                            addGuestCoordinateListener();
                         }
                     }
                 }
             }else{
-                host_coordinate_moves = database.getReference("rooms/" + roomName + "/host_coordinate_moves");
-                next_move = "None";
-                host_coordinate_moves.setValue(next_move);
-                addHostCoordinateListener();
+//                coordinate_moves = database.getReference("rooms/" + roomName + "/host_coordinate_moves");
+//                next_move = "None";
+//                coordinate_moves.setValue(next_move);
+//                addHostCoordinateListener();
                 // send playerTwo moves
                 for(int row = 0; row < 8; row++){
                     for(int column = 0; column < 8; column++){
                         if(v == buttons[row][column]){
                             next_move = "guest: " + Integer.toString(row) + "," + Integer.toString(column);
-                            host_coordinate_moves.setValue(next_move);
-                            addHostCoordinateListener();
+                            coordinate_moves.setValue(next_move);
+//                            addHostCoordinateListener();
                         }
                     }
                 }
@@ -254,72 +306,93 @@ public class Battleship extends AppCompatActivity {
 
         }
 
-        private void addGuestCoordinateListener() {
-            guest_coordinate_moves.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    DatabaseReference temp = database.getReference("rooms/" + roomName + "/host_coordinate_moves");
-                    String move = (String) temp.get().getResult().getValue();
-                    if(move != null){
-                        if (move.contains("guest:")) {
-                            String[] coor = move.substring(7).split(",");
-                            int row = Integer.parseInt(coor[0]);
-                            int column = Integer.parseInt(coor[1]);
-                            System.out.println(row + ", " + column);
-                            if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
-                                buttons[row][column].setBackgroundColor(Color.RED);
-                                buttons[row][column].setEnabled(false);
-                                player_life--;
-                                if (player_life == 0) {
-                                    // player died
-                                }
-                            }
-                        }
-                    }
+//        private void addGuestCoordinateListener() {
+//            guest_coordinate_moves.addValueEventListener(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                    String move = (String) snapshot.getValue();
+//                    if(snapshot != null && role.equals("guest")){
+//                        if (move.contains("host:")) {
+//                            String[] coor = move.substring(7).split(",");
+//                            int row = Integer.parseInt(coor[0]);
+//                            int column = Integer.parseInt(coor[1]);
+//                            System.out.println(row + ", " + column);
+//                            if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+//                                buttons[row][column].setBackgroundColor(Color.RED);
+//                                buttons[row][column].setEnabled(false);
+//                                player_life--;
+//                                if (player_life == 0) {
+//                                    // player died
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError error) {
+//
+//                }
+//            });
+//        }
 
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-        }
-
-        // listener for next move
-        private void addHostCoordinateListener() {
-            host_coordinate_moves.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    // next move received
-                    DatabaseReference temp = database.getReference("rooms/" + roomName +"/guest_coordinate_moves");
-                    String move = (String) temp.get().getResult().getValue();
-                    if(move != null){
-                        // player one
-                        if(move.contains("host:")){
-                            String[] coor = move.substring(6).split(",");
-                            int row = Integer.parseInt(coor[0]);
-                            int column = Integer.parseInt(coor[1]);
-                            System.out.println(row + ", " + column);
-                            if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
-                                buttons[row][column].setBackgroundColor(Color.RED);
-                                buttons[row][column].setEnabled(false);
-                                player_life--;
-                                if(player_life == 0){
-                                    // player died
-                                }
-                            }
-                        }
-
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-        }
+//        // listener for next move
+//        private void addHostCoordinateListener() {
+//            coordinate_moves.addValueEventListener(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                    // next move received
+////                    DatabaseReference temp = database.getReference("rooms/guest_coordinate_moves");
+////                    String move;
+////                    move = (String) snapshot.getValue();
+////                    Task<DataSnapshot> task = temp.get();
+////                    task.
+//                    if(snapshot != null){
+//                        // player one
+//                        if(move.contains("guest:")){
+//                            String[] coor = move.substring(7).split(",");
+//                            int row = Integer.parseInt(coor[0]);
+//                            int column = Integer.parseInt(coor[1]);
+//                            System.out.println(row + ", " + column);
+//                            if(player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()){
+//                                buttons[row][column].setBackgroundColor(Color.RED);
+//                                buttons[row][column].setEnabled(false);
+//                                player_life--;
+//                                if(player_life == 0){
+//                                    // player died
+//                                }
+//                            }
+//                        }
+//
+//                    }else{
+//                        // player two
+//                        if(snapshot != null && move.contains("guest:")){
+//                            if (move.contains("guest:")) {
+//                                String[] coor = move.substring(7).split(",");
+//                                int row = Integer.parseInt(coor[0]);
+//                                int column = Integer.parseInt(coor[1]);
+//                                System.out.println(row + ", " + column);
+//                                if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
+//                                    buttons[row][column].setBackgroundColor(Color.RED);
+//                                    buttons[row][column].setEnabled(false);
+//                                    player_life--;
+//                                    if (player_life == 0) {
+//                                        // player died
+//                                    }
+//                                }
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError error) {
+//
+//                }
+//            });
+//        }
 
         public void single_player(View v){
             Random random = new Random();
