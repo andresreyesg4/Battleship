@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Random;
+import java.util.SplittableRandom;
 
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -22,6 +23,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 public class Battleship extends AppCompatActivity {
     private final int WIDTH = 8;
     private final int HEIGHT = 8;
@@ -35,14 +38,9 @@ public class Battleship extends AppCompatActivity {
     private int player_life = 16, pc_life = 16;
     private FirebaseDatabase database;
     private DatabaseReference turnTraker;
-    private DatabaseReference lifeTracker;
     private DatabaseReference gameover;
     private DatabaseReference coordinate_moves;
     private DatabaseReference hitmiss;
-//    private DatabaseReference other_player_moves;
-//    private DatabaseReference my_moves;
-//    private DatabaseReference other_player_hitmiss;
-//    private DatabaseReference my_hitmiss;
     private String playerName, roomName, role, next_move;
 
     @Override
@@ -78,8 +76,19 @@ public class Battleship extends AppCompatActivity {
 
             // create the reference to hitmiss
             hitmiss = database.getReference("rooms/" + roomName + "/hitmiss");
-//            hitmiss.setValue("None");
+            hitmiss.setValue("none");
             addHitMissListener();
+
+            // create the reference to when one player dies.
+            gameover = database.getReference("rooms/" + roomName + "/gameover");
+            gameover.setValue("none");
+            addGameOverListener();
+
+            // create the reference to take turns.
+            turnTraker = database.getReference("rooms/" + roomName + "/turntracker");
+            turnTraker.setValue("host");
+            addTurnTrackerListener();
+
         }else {
             // initialize the ships
             player_ships = new Ship[5];
@@ -101,11 +110,73 @@ public class Battleship extends AppCompatActivity {
         }
     }
 
+    // listener for turn taking.
+    private void addTurnTrackerListener() {
+        turnTraker.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.getValue(String.class) != null){
+                    if(snapshot.getValue(String.class).contains("host") && role.equals("host")){
+                        // it is the host turn to make a move
+                        Toast.makeText(Battleship.this, playerName + "'s turn!", Toast.LENGTH_SHORT).show();
+                    }else{
+                        // it is the guest turn to make a move
+                        Toast.makeText(Battleship.this, playerName + "'s turn!", Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
+    // listener to determine the winner of the game.
+    private void addGameOverListener() {
+        gameover.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                TextView message = findViewById(R.id.message);
+                if (snapshot.getValue(String.class) != null) {
+                    if (role.equals("host") && snapshot.getValue(String.class).contains("host")) {
+                        // host won the game
+                        message.setText(playerName + " Won!!!!");
+                        new ButtonHandler().disable_all(buttons);
+
+                    } else if(role.equals("guest") && snapshot.getValue(String.class).contains("guest")){
+                        // the guest won the game
+                        message.setText(playerName + " Won!!!");
+                        new ButtonHandler().disable_all(buttons);
+
+                    }else if(role.equals("host") && snapshot.getValue(String.class).contains("guest")){
+                        // host lost the game
+                        message.setText("guest won!!");
+                        new ButtonHandler().disable_all(buttons);
+
+                    }else if(role.equals("guest") && snapshot.getValue(String.class).contains("host")){
+                        message.setText("Guest won!!");
+                        new ButtonHandler().disable_all(buttons);
+
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // do nothing
+            }
+        });
+    }
+
+
     private void addHitMissListener() {
         hitmiss.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(role.equals("host")){
+                if(role.equals("host") && snapshot.getValue(String.class) != null){
                     // check if the recent change that includes "guest:" contains hit or miss
                     String sn = snapshot.getValue(String.class);
                     if(sn.contains("guest")) {
@@ -116,33 +187,35 @@ public class Battleship extends AppCompatActivity {
                             int col = Integer.parseInt(coord[1]);
                             buttons[row][col].setBackgroundColor(Color.RED);
                             buttons[row][col].setEnabled(false);
-                        } else {
-                            String hm = snapshot.getValue(String.class).substring(6, 9);
-                            String[] coord = snapshot.getValue(String.class).substring(12).split(",");
-                            int row = Integer.parseInt(coord[0]);
-                            int col = Integer.parseInt(coord[1]);
-                            buttons[row][col].setEnabled(false);
-                            buttons[row][col].setText("");
+                        } else if(snapshot.getValue(String.class).contains("guest: Miss")) {
+                                String hm = snapshot.getValue(String.class).substring(6, 9);
+                                String[] coord = snapshot.getValue(String.class).substring(12).split(",");
+                                int row = Integer.parseInt(coord[0]);
+                                int col = Integer.parseInt(coord[1]);
+                                buttons[row][col].setEnabled(false);
+                                buttons[row][col].setText("");
                         }
                     }
                 }else{
                     // check if the recent shot hit or missed the host's ships
-                    String sn = snapshot.getValue(String.class);
-                    if(sn.contains("host")) {
-                        if (snapshot.getValue(String.class).contains("host: Hit")) {
-                            String hm = snapshot.getValue(String.class).substring(5, 8);
-                            String[] coord = snapshot.getValue(String.class).substring(10).split(",");
-                            int row = Integer.parseInt(coord[0]);
-                            int col = Integer.parseInt(coord[1]);
-                            buttons[row][col].setBackgroundColor(Color.RED);
-                            buttons[row][col].setEnabled(false);
-                        } else {
-                            String hm = snapshot.getValue(String.class).substring(5, 9);
-                            String[] coord = snapshot.getValue(String.class).substring(11).split(",");
-                            int row = Integer.parseInt(coord[0]);
-                            int col = Integer.parseInt(coord[1]);
-                            buttons[row][col].setEnabled(false);
-                            buttons[row][col].setText("");
+                    if(snapshot.getValue(String.class) != null) {
+                        String sn = snapshot.getValue(String.class);
+                        if (sn.contains("host")) {
+                            if (snapshot.getValue(String.class).contains("host: Hit")) {
+                                String hm = snapshot.getValue(String.class).substring(5, 8);
+                                String[] coord = snapshot.getValue(String.class).substring(10).split(",");
+                                int row = Integer.parseInt(coord[0]);
+                                int col = Integer.parseInt(coord[1]);
+                                buttons[row][col].setBackgroundColor(Color.RED);
+                                buttons[row][col].setEnabled(false);
+                            } else if(snapshot.getValue(String.class).contains("host: Miss")) {
+                                String hm = snapshot.getValue(String.class).substring(5, 9);
+                                String[] coord = snapshot.getValue(String.class).substring(11).split(",");
+                                int row = Integer.parseInt(coord[0]);
+                                int col = Integer.parseInt(coord[1]);
+                                buttons[row][col].setEnabled(false);
+                                buttons[row][col].setText("");
+                            }
                         }
                     }
                 }
@@ -159,8 +232,8 @@ public class Battleship extends AppCompatActivity {
         coordinate_moves.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(role.equals("host")){
-                    if(snapshot.getValue(String.class).contains("guest")){
+                if (snapshot.getValue(String.class) != null) {
+                    if (role.equals("host") && snapshot.getValue(String.class).contains("guest")) {
                         // coming from the guest
                         String move = snapshot.getValue(String.class);
                         String[] coord = move.substring(7).split(",");
@@ -172,41 +245,44 @@ public class Battleship extends AppCompatActivity {
                             player_life--;
                             if (player_life == 0) {
                                 // player died
+                                gameover.setValue("guest: won");
                             }
-                        }else{
-                            ship_layout[row][column].setBackgroundColor(Color.YELLOW);
-                            player_board.setValue(row,column,-1);
-                            hitmiss.setValue(role + ": Miss " + Integer.toString(row) + "," + Integer.toString(column));
-                        }
-                        Toast.makeText(Battleship.this, "" + snapshot.
-                                        getValue(String.class).replace("guest:", ""),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                }else{
-                    if(snapshot.getValue(String.class).contains("host")){
-                        // coming from the host
-                        String move = snapshot.getValue(String.class);
-                        String[] coord = move.substring(6).split(",");
-                        int row = Integer.parseInt(coord[0]);
-                        int column = Integer.parseInt(coord[1]);
-                        if (player_board.getValue(row, column) > 0 && buttons[row][column].isEnabled()) {
-                            ship_layout[row][column].setBackgroundColor(Color.RED);
-                            hitmiss.setValue(role + ": Hit " + Integer.toString(row) + "," + Integer.toString(column));
-                            player_life--;
-                            if (player_life == 0) {
-                                // player died
-                            }
-                        }else{
+                        } else if(player_board.getValue(row, column) == 0 && snapshot.getValue(String.class).contains("guest")){
                             ship_layout[row][column].setBackgroundColor(Color.YELLOW);
                             player_board.setValue(row, column, -1);
                             hitmiss.setValue(role + ": Miss " + Integer.toString(row) + "," + Integer.toString(column));
                         }
                         Toast.makeText(Battleship.this, "" + snapshot.
-                                        getValue(String.class).replace("host:", ""),
+                                        getValue(String.class).replace("guest:", ""),
                                 Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        if (snapshot.getValue(String.class).contains("host") && role.equals("guest")) {
+                            // coming from the host
+                            String move = snapshot.getValue(String.class);
+                            String[] coord = move.substring(6).split(",");
+                            int row = Integer.parseInt(coord[0]);
+                            int column = Integer.parseInt(coord[1]);
+                            if (player_board.getValue(row, column) > 0 && buttons[row][column].isEnabled()) {
+                                ship_layout[row][column].setBackgroundColor(Color.RED);
+                                hitmiss.setValue(role + ": Hit " + Integer.toString(row) + "," + Integer.toString(column));
+                                player_life--;
+                                if (player_life == 0) {
+                                    // player died
+                                    gameover.setValue("host: won");
+                                }
+                            } else if(player_board.getValue(row,column) == 0 && snapshot.getValue(String.class).contains("host")) {
+                                ship_layout[row][column].setBackgroundColor(Color.YELLOW);
+                                player_board.setValue(row, column, -1);
+                                hitmiss.setValue(role + ": Miss " + Integer.toString(row) + "," + Integer.toString(column));
+                            }
+                            Toast.makeText(Battleship.this, "" + snapshot.
+                                            getValue(String.class).replace("host:", ""),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
+
                     }
-
-
                 }
             }
 
@@ -341,8 +417,6 @@ public class Battleship extends AppCompatActivity {
 
         private void multiplayer(View v) {
             // implement the game playing with multiplayer.
-            TextView message = findViewById(R.id.message);
-            boolean game_won = false;
             if(role.equals("host")){
                 // send playerOnes moves
                 for(int row = 0; row < 8; row++){
@@ -350,6 +424,8 @@ public class Battleship extends AppCompatActivity {
                         if(v == buttons[row][column]){
                             next_move = "host: " + Integer.toString(row) + "," + Integer.toString(column);
                             coordinate_moves.setValue(next_move);
+                            // change the turn to the other player
+                            turnTraker.setValue("guest");
                         }
                     }
                 }
@@ -360,6 +436,7 @@ public class Battleship extends AppCompatActivity {
                         if(v == buttons[row][column]){
                             next_move = "guest: " + Integer.toString(row) + "," + Integer.toString(column);
                             coordinate_moves.setValue(next_move);
+                            turnTraker.setValue("host");
                         }
                     }
                 }
@@ -426,5 +503,6 @@ public class Battleship extends AppCompatActivity {
                 }
             }
         }
+
     }
 }
