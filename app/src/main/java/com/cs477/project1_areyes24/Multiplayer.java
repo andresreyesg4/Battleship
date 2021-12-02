@@ -52,6 +52,9 @@ public class Multiplayer extends AppCompatActivity {
             }
         });
         addRoom();
+        if(roomList.isEmpty()){
+            Toast.makeText(Multiplayer.this, "There is no rooms to play, Create one!", Toast.LENGTH_SHORT);
+        }
     }
 
     private void addRoom() {
