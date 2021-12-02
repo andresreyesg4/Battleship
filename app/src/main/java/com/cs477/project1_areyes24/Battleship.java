@@ -70,6 +70,8 @@ public class Battleship extends AppCompatActivity {
             build_ship_layout();
             build_attack_layout();
             coordinate_moves = database.getReference("rooms/" + roomName + "/coordinate_moves");
+            next_move = "none";
+            coordinate_moves.setValue(next_move);
             addCoordinateListener();
             // next_move = role + ":None";
             // coordinate_moves.setValue(next_move);
@@ -207,7 +209,7 @@ public class Battleship extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // next move received
-                if(role.equals("host") && snapshot.getValue(String.class).toString() != null){
+                if(role.equals("host") && snapshot != null){
                     // player one
                     String move = snapshot.getValue(String.class).toString();
                     if(move.contains("guest:")){
@@ -226,7 +228,7 @@ public class Battleship extends AppCompatActivity {
 
                 }else{
                     // player two
-                    if(snapshot.getValue(String.class).toString() != null){
+                    if(snapshot != null){
                         String move = snapshot.getValue(String.class).toString();
                         if (move.contains("host:")) {
                             String[] coor = move.substring(5).split(",");
