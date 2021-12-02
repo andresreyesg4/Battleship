@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -257,9 +258,10 @@ public class Battleship extends AppCompatActivity {
             guest_coordinate_moves.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String move = (String) snapshot.getValue();
-                    if(snapshot != null && role.equals("guest")){
-                        if (move.contains("host:")) {
+                    DatabaseReference temp = database.getReference("rooms/" + roomName + "/host_coordinate_moves");
+                    String move = (String) temp.get().getResult().getValue();
+                    if(move != null){
+                        if (move.contains("guest:")) {
                             String[] coor = move.substring(7).split(",");
                             int row = Integer.parseInt(coor[0]);
                             int column = Integer.parseInt(coor[1]);
@@ -290,12 +292,12 @@ public class Battleship extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     // next move received
-                    String move = "";
-                    move = (String) snapshot.getValue();
-                    if(role.equals("host") && snapshot != null){
+                    DatabaseReference temp = database.getReference("rooms/" + roomName +"/guest_coordinate_moves");
+                    String move = (String) temp.get().getResult().getValue();
+                    if(move != null){
                         // player one
-                        if(move.contains("guest:")){
-                            String[] coor = move.substring(7).split(",");
+                        if(move.contains("host:")){
+                            String[] coor = move.substring(6).split(",");
                             int row = Integer.parseInt(coor[0]);
                             int column = Integer.parseInt(coor[1]);
                             System.out.println(row + ", " + column);
@@ -309,25 +311,6 @@ public class Battleship extends AppCompatActivity {
                             }
                         }
 
-                    }else{
-//                        // player two
-//                        if(snapshot != null && move.contains("guest:")){
-//                            if (move.contains("guest:")) {
-//                                String[] coor = move.substring(7).split(",");
-//                                int row = Integer.parseInt(coor[0]);
-//                                int column = Integer.parseInt(coor[1]);
-//                                System.out.println(row + ", " + column);
-//                                if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
-//                                    buttons[row][column].setBackgroundColor(Color.RED);
-//                                    buttons[row][column].setEnabled(false);
-//                                    player_life--;
-//                                    if (player_life == 0) {
-//                                        // player died
-//                                    }
-//                                }
-//                            }
-//                        }
-//
                     }
                 }
 
