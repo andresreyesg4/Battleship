@@ -251,7 +251,11 @@ public class Battleship extends AppCompatActivity {
                     // next move received
                     if(role.equals("host") && snapshot != null){
                         // player one
-                        String move = snapshot.getValue(String.class).toString();
+                        Iterable<DataSnapshot> iterable_move = snapshot.getChildren();
+                        String move = "";
+                        for(DataSnapshot m: iterable_move){
+                            move = m.getKey();
+                        }
                         if(move.contains("guest:")){
                             String[] coor = move.substring(6).split(",");
                             int row = Integer.parseInt(coor[0]);
@@ -270,7 +274,11 @@ public class Battleship extends AppCompatActivity {
                     }else{
                         // player two
                         if(snapshot != null){
-                            String move = snapshot.getValue(String.class).toString();
+                            Iterable<DataSnapshot> iterable_move = snapshot.getChildren();
+                            String move = "";
+                            for(DataSnapshot m: iterable_move){
+                                move = m.getKey();
+                            }
                             if (move.contains("host:")) {
                                 String[] coor = move.substring(5).split(",");
                                 int row = Integer.parseInt(coor[0]);
