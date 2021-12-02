@@ -107,11 +107,14 @@ public class Battleship extends AppCompatActivity {
                         int column = Integer.parseInt(coord[1]);
                         if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
                             ship_layout[row][column].setBackgroundColor(Color.RED);
-//                            buttons[row][column].setEnabled(false);
+                            buttons[row][column].setEnabled(false);
                             player_life--;
                             if (player_life == 0) {
                                 // player died
                             }
+                        }else{
+                            ship_layout[row][column].setBackgroundColor(Color.YELLOW);
+                            player_board.setValue(row,column,-1);
                         }
                         Toast.makeText(Battleship.this, "" + snapshot.
                                         getValue(String.class).replace("guest:", ""),
@@ -131,6 +134,9 @@ public class Battleship extends AppCompatActivity {
                             if (player_life == 0) {
                                 // player died
                             }
+                        }else{
+                            ship_layout[row][column].setBackgroundColor(Color.YELLOW);
+                            player_board.setValue(row, column, -1);
                         }
                         Toast.makeText(Battleship.this, "" + snapshot.
                                         getValue(String.class).replace("host:", ""),
