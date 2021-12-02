@@ -106,17 +106,17 @@ public class Battleship extends AppCompatActivity {
                         int row = Integer.parseInt(coord[0]);
                         int column = Integer.parseInt(coord[1]);
                         if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
-                            buttons[row][column].setBackgroundColor(Color.RED);
-                            buttons[row][column].setEnabled(false);
+                            ship_layout[row][column].setBackgroundColor(Color.RED);
+//                            buttons[row][column].setEnabled(false);
                             player_life--;
                             if (player_life == 0) {
                                 // player died
                             }
                         }
+                        Toast.makeText(Battleship.this, "" + snapshot.
+                                        getValue(String.class).replace("guest:", ""),
+                                Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(Battleship.this, "" + snapshot.
-                            getValue(String.class).replace("guest:", ""),
-                            Toast.LENGTH_SHORT).show();
                 }else{
                     if(snapshot.getValue(String.class).contains("host")){
                         // coming from the host
@@ -125,14 +125,18 @@ public class Battleship extends AppCompatActivity {
                         int row = Integer.parseInt(coord[0]);
                         int column = Integer.parseInt(coord[1]);
                         if (player_board.getValue(row, column) != 0 && buttons[row][column].isEnabled()) {
-                            buttons[row][column].setBackgroundColor(Color.RED);
-                            buttons[row][column].setEnabled(false);
+                            ship_layout[row][column].setBackgroundColor(Color.RED);
+//                            shi[row][column].setEnabled(false);
                             player_life--;
                             if (player_life == 0) {
                                 // player died
                             }
                         }
+                        Toast.makeText(Battleship.this, "" + snapshot.
+                                        getValue(String.class).replace("host:", ""),
+                                Toast.LENGTH_SHORT).show();
                     }
+
 
                 }
             }
