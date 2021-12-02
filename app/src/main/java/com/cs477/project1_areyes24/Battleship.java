@@ -78,7 +78,7 @@ public class Battleship extends AppCompatActivity {
 
             // create the reference to hitmiss
             hitmiss = database.getReference("rooms/" + roomName + "/hitmiss");
-            hitmiss.setValue("None");
+//            hitmiss.setValue("None");
             addHitMissListener();
         }else {
             // initialize the ships
@@ -107,37 +107,43 @@ public class Battleship extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(role.equals("host")){
                     // check if the recent change that includes "guest:" contains hit or miss
-                    if(snapshot.getValue(String.class).contains("guest: Hit")){
-                        String hm = snapshot.getValue(String.class).substring(6, 9);
-                        String[] coord = snapshot.getValue(String.class).substring(10).split(",");
-                        int row = Integer.parseInt(coord[0]);
-                        int col = Integer.parseInt(coord[1]);
-                        buttons[row][col].setBackgroundColor(Color.RED);
-                        buttons[row][col].setEnabled(false);
-                    }else{
-                        String hm = snapshot.getValue(String.class).substring(6,9);
-                        String[] coord = snapshot.getValue(String.class).substring(11).split(",");
-                        int row = Integer.parseInt(coord[0]);
-                        int col = Integer.parseInt(coord[1]);
-                        buttons[row][col].setEnabled(false);
-                        buttons[row][col].setText("");
+                    String sn = snapshot.getValue(String.class);
+                    if(sn.contains("guest")) {
+                        if (snapshot.getValue(String.class).contains("guest: Hit")) {
+                            String hm = snapshot.getValue(String.class).substring(6, 9);
+                            String[] coord = snapshot.getValue(String.class).substring(11).split(",");
+                            int row = Integer.parseInt(coord[0]);
+                            int col = Integer.parseInt(coord[1]);
+                            buttons[row][col].setBackgroundColor(Color.RED);
+                            buttons[row][col].setEnabled(false);
+                        } else {
+                            String hm = snapshot.getValue(String.class).substring(6, 9);
+                            String[] coord = snapshot.getValue(String.class).substring(12).split(",");
+                            int row = Integer.parseInt(coord[0]);
+                            int col = Integer.parseInt(coord[1]);
+                            buttons[row][col].setEnabled(false);
+                            buttons[row][col].setText("");
+                        }
                     }
                 }else{
                     // check if the recent shot hit or missed the host's ships
-                    if(snapshot.getValue(String.class).contains("host: Hit")){
-                        String hm = snapshot.getValue(String.class).substring(5, 8);
-                        String[] coord = snapshot.getValue(String.class).substring(9).split(",");
-                        int row = Integer.parseInt(coord[0]);
-                        int col = Integer.parseInt(coord[1]);
-                        buttons[row][col].setBackgroundColor(Color.RED);
-                        buttons[row][col].setEnabled(false);
-                    }else{
-                        String hm = snapshot.getValue(String.class).substring(5, 9);
-                        String[] coord = snapshot.getValue(String.class).substring(10).split(",");
-                        int row = Integer.parseInt(coord[0]);
-                        int col = Integer.parseInt(coord[1]);
-                        buttons[row][col].setEnabled(false);
-                        buttons[row][col].setText("");
+                    String sn = snapshot.getValue(String.class);
+                    if(sn.contains("host")) {
+                        if (snapshot.getValue(String.class).contains("host: Hit")) {
+                            String hm = snapshot.getValue(String.class).substring(5, 8);
+                            String[] coord = snapshot.getValue(String.class).substring(10).split(",");
+                            int row = Integer.parseInt(coord[0]);
+                            int col = Integer.parseInt(coord[1]);
+                            buttons[row][col].setBackgroundColor(Color.RED);
+                            buttons[row][col].setEnabled(false);
+                        } else {
+                            String hm = snapshot.getValue(String.class).substring(5, 9);
+                            String[] coord = snapshot.getValue(String.class).substring(11).split(",");
+                            int row = Integer.parseInt(coord[0]);
+                            int col = Integer.parseInt(coord[1]);
+                            buttons[row][col].setEnabled(false);
+                            buttons[row][col].setText("");
+                        }
                     }
                 }
             }
